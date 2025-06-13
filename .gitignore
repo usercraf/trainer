@@ -1,3 +1,8 @@
 sport.db
 credentials.py
 test_file.py
+
+.idea/
+
+__pycache__/
+*.py[cod]
