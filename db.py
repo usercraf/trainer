@@ -1,8 +1,6 @@
 import sqlite3
 import aiosqlite
-
-base = sqlite3.connect('sport.db')
-cur = base.cursor()
+from main import cur, base
 
 
 

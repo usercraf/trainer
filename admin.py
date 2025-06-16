@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F, types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from db import cur, base
+from main import cur, base
 from log import logger
 
 
