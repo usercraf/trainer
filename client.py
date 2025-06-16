@@ -7,7 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import date, timedelta
 import calendar
 
-from main import cur, base
+from credentials import cur, base
 from log import logger
 
 

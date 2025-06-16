@@ -1,9 +1,8 @@
-from main import cur, base
+from credentials import admin_key, Administrator, cur, base
 
-Administrator = 'Administrator'
-admin_key = '11223344'
 
-# Ця функція створить 2 таблиці у бази даних для тренерів та запису до них.
+
+# Ця функція створить 3 таблиці у бази даних для тренерів та запису до них.
 # Ви можете змінити admin_key проте не змінюйте назву адміністратора
 def crete_table():
     cur.execute('''CREATE TABLE IF NOT EXISTS record_to_training(
@@ -25,9 +24,16 @@ def crete_table():
         time TEXT
     )''')
 
-    base.execute('INSERT INTO trainers (name, id_trainer) VALUES(?, ?)',
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS admin_base(
+        name TEXT,
+        id_admin TEXT
+    )''')
+    base.execute('INSERT INTO admin_base (name, id_admin) VALUES(?, ?)',
                  (Administrator, admin_key,))
     base.commit()
 
-    base.commit()
+crete_table()
 
+# base.execute('DELETE FROM admin_base WHERE id_admin = ?', ('11223344',))
+# base.commit()

@@ -7,7 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from datetime import date, timedelta
 import calendar
 
-from main import cur, base
+from credentials import cur, base
 from credentials import all_time
 from log import logger
 
@@ -23,6 +23,7 @@ class Check_coach(StatesGroup):
 class TimeTrainerFSM(StatesGroup):
     choose_trainer = State()
     choose_time = State()
+
 
 def trainer_id():
     select_names = cur.execute('SELECT id_trainer FROM trainers').fetchall()
@@ -52,8 +53,7 @@ async def trainer_meny(message: types.Message):
     builder = InlineKeyboardBuilder()
     for i in select_names:
         builder.add(types.InlineKeyboardButton(text=i[0], callback_data=f'use_trainer_{i[1]}'))
-    builder.add(types.InlineKeyboardButton(text='Додати тренера 🧘', callback_data='add_trainer'))
-    builder.add(types.InlineKeyboardButton(text='Видалити тренера 🧨', callback_data='remove_trainer'))
+    builder.add(types.InlineKeyboardButton(text='Адмін меню 🧘', callback_data='admin_meny'))
     builder.add(types.InlineKeyboardButton(text='Визначити часи прийому ⏰', callback_data='hours_for_trainer'))
     builder.add(types.InlineKeyboardButton(text='На головну 🏠', callback_data='Home'))
     builder.adjust(1)

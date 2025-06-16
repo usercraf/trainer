@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F, types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from main import cur, base
+from credentials import cur, base
 from log import logger
 
 
@@ -17,6 +17,8 @@ admin_router = Router()
 class Add_trainer(StatesGroup):
     add_trainer = State()
 
+class Check_admin(StatesGroup):
+    waiting_admin_code = State()
 
 def generate_unique_code():
     while True:
@@ -27,6 +29,42 @@ def generate_unique_code():
         ).fetchone()
         if not exists:
             return int(code)
+
+
+@admin_router.callback_query(F.data == 'admin_meny')
+async def check_trainer(callback: types.CallbackQuery, state:FSMContext):
+    await callback.message.edit_text('Надійшли свій ID 👮')
+    await state.set_state(Check_admin.waiting_admin_code)
+    await callback.answer()
+
+@admin_router.message(Check_admin.waiting_admin_code)
+async def trainer_code(message: types.Message, state: FSMContext):
+    logger.info(
+        f"Користувач {message.from_user.first_name} (ID: {message.from_user.id}) вводить id_administrator")
+    code_entered = message.text.strip()
+    result = cur.execute(
+        "SELECT 1 FROM admin_base WHERE id_admin = ? AND name = ?",
+        (code_entered, 'Administrator')
+    ).fetchone()
+    builder = InlineKeyboardBuilder()
+    if result:
+        name = result[0]
+        await message.answer(f"✅ Код вірний. Вітаю, Aдміне!")
+        logger.info(
+            f"Користувач {message.from_user.first_name} (ID: {message.from_user.id}) зайшов до адмін меню меню")
+        builder = InlineKeyboardBuilder()
+        builder.add(types.InlineKeyboardButton(text='Додати тренера 🧘', callback_data='add_trainer'))
+        builder.add(types.InlineKeyboardButton(text='Видалити тренера 🧨', callback_data='remove_trainer'))
+        builder.add(types.InlineKeyboardButton(text='На головну 🏠', callback_data='Home'))
+        builder.adjust(1)
+        await message.answer('Це меню адміна.', reply_markup=builder.as_markup())
+        await state.clear()  # завершуємо FSM
+
+    else:
+        logger.warning(
+            f"Користувач {message.from_user.first_name} (ID: {message.from_user.id}) ввів НЕ ПРАВИЛЬНИЙ id_admina")
+        builder.add(types.InlineKeyboardButton(text='На головну 🏠', callback_data='Home'))
+        await message.answer("❌ Код невірний. Спробуйте ще раз:", reply_markup=builder.as_markup())
 
 
 # хендлер додавання тренера до бази даних

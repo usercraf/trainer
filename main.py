@@ -1,5 +1,4 @@
 import asyncio
-import sqlite3
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
@@ -16,8 +15,7 @@ from client import client_router
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-base = sqlite3.connect('sport.db')
-cur = base.cursor()
+
 
 # Хэндлер на команду /start
 @dp.message(Command("start"))
