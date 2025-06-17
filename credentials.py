@@ -1,6 +1,6 @@
 import sqlite3
 
-TOKEN = 'Тут має бути твій TOKEN' # Маєш вставити сюди свій TOKEN Telegram
+TOKEN = '7503331836:AAHN9nXDVyWS68JJnIoPGYSMr9aYtmosID4' # Маєш вставити сюди свій TOKEN Telegram
 
 Administrator = 'Administrator'
 admin_key = '11223344' # Ти можешь його замінити на будь який свій
