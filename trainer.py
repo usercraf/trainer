@@ -19,10 +19,13 @@ class Check_coach(StatesGroup):
     waiting_for_code = State()
     name_trainer = State()
 
-
+# клас для визначкення часу в який приймає тренер
 class TimeTrainerFSM(StatesGroup):
     choose_trainer = State()
     choose_time = State()
+
+class EnterToTrainer(StatesGroup):
+    enter_to_trainer = State()
 
 
 def trainer_id():
@@ -46,18 +49,38 @@ def day_on_month():
 
 
 @trainer_router.message(F.text == 'Я тренер 💪')
-async def trainer_meny(message: types.Message):
+async def trainer_meny(message: types.Message, state: FSMContext):
+    logger.info(
+        f"Користувач {message.from_user.first_name} (ID: {message.from_user.id}) Проходить верифікацію на тренера чи адміністратора")
+    await message.answer('Надійшли свій ID 👮')
+    await state.set_state(EnterToTrainer.enter_to_trainer)
+
+@trainer_router.message(EnterToTrainer.enter_to_trainer)
+async def enter_to_trainer_menu(message: types.Message, state: FSMContext):
     logger.info(
         f"Користувач {message.from_user.first_name} (ID: {message.from_user.id}) зайшов до тренер меню")
-    select_names = cur.execute('SELECT name, id_trainer FROM trainers').fetchall()
+
+    code_entered = message.text.strip()
+    result_admin = cur.execute("SELECT 1 FROM admin_base WHERE id_admin = ?", (code_entered,)).fetchone()
+    result_trainer = cur.execute("SELECT 1 FROM trainers WHERE id_trainer = ?", (code_entered,)).fetchone()
     builder = InlineKeyboardBuilder()
-    for i in select_names:
-        builder.add(types.InlineKeyboardButton(text=i[0], callback_data=f'use_trainer_{i[1]}'))
-    builder.add(types.InlineKeyboardButton(text='Адмін меню 🧘', callback_data='admin_meny'))
-    builder.add(types.InlineKeyboardButton(text='Визначити часи прийому ⏰', callback_data='hours_for_trainer'))
-    builder.add(types.InlineKeyboardButton(text='На головну 🏠', callback_data='Home'))
-    builder.adjust(1)
-    await message.answer('Виберіть себе зі списку ⬇', reply_markup=builder.as_markup())
+    if result_trainer or result_admin:
+        select_names = cur.execute('SELECT name, id_trainer FROM trainers').fetchall()
+        for i in select_names:
+            builder.add(types.InlineKeyboardButton(text=i[0], callback_data=f'use_trainer_{i[1]}'))
+        builder.add(types.InlineKeyboardButton(text='Адмін меню 🧘', callback_data='admin_meny'))
+        builder.add(types.InlineKeyboardButton(text='Визначити часи прийому ⏰', callback_data='hours_for_trainer'))
+        builder.add(types.InlineKeyboardButton(text='На головну 🏠', callback_data='Home'))
+        builder.adjust(1)
+        await state.clear()
+        await message.answer('Виберіть себе зі списку ⬇', reply_markup=builder.as_markup())
+
+    else:
+        logger.warning(
+            f"Користувач {message.from_user.first_name} (ID: {message.from_user.id}) ввів НЕ ПРАВИЛЬНИЙ ID Тренера чи адміністратора ")
+        builder.add(types.InlineKeyboardButton(text='На головну 🏠', callback_data='Home'))
+        await message.answer("❌ Код невірний. Спробуйте ще раз:", reply_markup=builder.as_markup())
+
 
 @trainer_router.callback_query(F.data.startswith('use_trainer_'))
 async def check_trainer(callback: types.CallbackQuery, state:FSMContext):
